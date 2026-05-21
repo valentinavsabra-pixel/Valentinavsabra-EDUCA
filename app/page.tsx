@@ -1,0 +1,1 @@
+'use client'\n\nimport Hero from '@/components/Hero'\nimport Features from '@/components/Features'\nimport CTA from '@/components/CTA'\nimport Footer from '@/components/Footer'\n\nexport default function Home() {\n  return (\n    <main className="overflow-hidden">\n      <Hero />\n      <Features />\n      <CTA />\n      <Footer />\n    </main>\n  )\n}
