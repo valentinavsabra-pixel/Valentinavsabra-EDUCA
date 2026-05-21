@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Professor | Educa+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h1 {
+        color: white;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .user-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .stat {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .section h2 {
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-box {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-box h3 {
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-box p {
+        color: #666;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .btn-feature {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: transform 0.3s;
+    }
+
+    .btn-feature:hover {
+        transform: translateY(-2px);
+    }
+
+    .class-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .class-card h4 {
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .class-stats {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>👨‍🏫 Bem-vindo, Professor {{ user_name }}!</h1>
+        <div class="user-stats">
+            <div class="stat">
+                <div class="stat-value">{{ xp }}</div>
+                <div class="stat-label">Pontos XP</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ (xp // 500) + 1 }}</div>
+                <div class="stat-label">Nível</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">45</div>
+                <div class="stat-label">Alunos</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ disciplines|length }}</div>
+                <div class="stat-label">Disciplinas</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="feature-box">
+            <div class="feature-icon">🤖</div>
+            <h3>ProfIA</h3>
+            <p>Gerador automático de aulas e exercícios com inteligência artificial.</p>
+            <button class="btn-feature">Usar ProfIA</button>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">📊</div>
+            <h3>Monitoramento</h3>
+            <p>Acompanhe o progresso de cada aluno com relatórios detalhados.</p>
+            <button class="btn-feature">Ver Alunos</button>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">📈</div>
+            <h3>Relatórios</h3>
+            <p>Analise estatísticas e desempenho com gráficos interativos.</p>
+            <button class="btn-feature">Ver Relatórios</button>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">✏️</div>
+            <h3>Gerenciar Conteúdo</h3>
+            <p>Crie, edite e organize aulas e exercícios.</p>
+            <button class="btn-feature">Gerenciar</button>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">📚</div>
+            <h3>Disciplinas</h3>
+            <p>Visualize e gerencie suas disciplinas e turmas.</p>
+            <button class="btn-feature">Ver Disciplinas</button>
+        </div>
+
+        <div class="feature-box">
+            <div class="feature-icon">⚙️</div>
+            <h3>Configurações</h3>
+            <p>Ajuste preferências e configurações da conta.</p>
+            <button class="btn-feature">Configurar</button>
+        </div>
+    </div>
+
+    <h2 style="color: var(--dark); margin: 3rem 0 1.5rem 0;">📚 Suas Disciplinas</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        {% for key, discipline in disciplines.items() %}
+        <div class="class-card">
+            <h4>{{ discipline.icon }} {{ discipline.name }}</h4>
+            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">{{ discipline.lessons }} aulas criadas</p>
+            <div class="class-stats">
+                <span>📊 {{ discipline.lessons }} aulas</span>
+                <span>👥 ~15 alunos</span>
+                <span>⭐ Média: 7.8</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

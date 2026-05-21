@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Aluno | Educa+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h1 {
+        color: white;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .user-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .stat {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .disciplines-section h2,
+    .achievements-section h2,
+    .assistant-section h2 {
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+    }
+
+    .discipline-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .discipline-info h3 {
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+        transition: width 0.3s;
+    }
+
+    .discipline-progress {
+        text-align: right;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .btn-quiz {
+        background: var(--primary);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.9rem;
+        transition: background 0.3s;
+    }
+
+    .btn-quiz:hover {
+        background: var(--secondary);
+    }
+
+    .achievement-badge {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        opacity: 0.7;
+        transition: opacity 0.3s;
+    }
+
+    .achievement-badge.unlocked {
+        opacity: 1;
+        background: linear-gradient(135deg, #FFF9E6 0%, #FFE680 100%);
+    }
+
+    .achievement-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .achievement-name {
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 0.9rem;
+    }
+
+    .achievement-xp {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .assistant-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .assistant-emoji {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .assistant-card p {
+        margin-bottom: 1rem;
+    }
+
+    .btn-assistant {
+        background: white;
+        color: #667eea;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.3s;
+    }
+
+    .btn-assistant:hover {
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .user-stats {
+            flex-direction: column;
+        }
+
+        .discipline-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .discipline-progress {
+            text-align: left;
+            margin-top: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>🎓 Bem-vindo, {{ user_name }}!</h1>
+        <div class="user-stats">
+            <div class="stat">
+                <div class="stat-value">{{ xp }}</div>
+                <div class="stat-label">Pontos XP</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ (xp // 500) + 1 }}</div>
+                <div class="stat-label">Nível</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">{{ disciplines|length }}</div>
+                <div class="stat-label">Disciplinas</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="disciplines-section">
+            <h2>📚 Minhas Disciplinas</h2>
+            {% for key, discipline in disciplines.items() %}
+            <div class="discipline-card">
+                <div class="discipline-info">
+                    <h3>{{ discipline.icon }} {{ discipline.name }}</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ discipline.progress }}%;"></div>
+                    </div>
+                    <small>{{ discipline.completed }}/{{ discipline.lessons }} aulas</small>
+                </div>
+                <div>
+                    <div class="discipline-progress">{{ discipline.progress }}%</div>
+                    <a href="/quiz/{{ key }}" class="btn-quiz">Fazer Quiz →</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="achievements-section">
+            <h2>🏆 Conquistas</h2>
+            {% for achievement in achievements %}
+            <div class="achievement-badge {% if achievement.unlocked %}unlocked{% endif %}">
+                <div class="achievement-icon">{{ achievement.icon }}</div>
+                <div class="achievement-name">{{ achievement.name }}</div>
+                <div class="achievement-xp">{{ achievement.xp }} XP</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="assistant-card">
+        <div class="assistant-emoji">🤖</div>
+        <h3>Assistente Edu</h3>
+        <p>"Olá! Sou Edu, seu assistente de inteligência artificial. Estou aqui para ajudar você a aprender melhor!"</p>
+        <button class="btn-assistant">💬 Conversar com Edu</button>
+    </div>
+</div>
+{% endblock %}

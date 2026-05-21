@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Educa+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        max-width: 400px;
+        margin: 3rem auto;
+    }
+
+    .login-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-card h2 {
+        text-align: center;
+        color: var(--primary);
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+        font-weight: 500;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: var(--dark);
+    }
+
+    .login-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .demo-section {
+        background: var(--light);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--primary);
+    }
+
+    .demo-section h3 {
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .demo-account {
+        background: white;
+        padding: 0.75rem;
+        border-radius: 5px;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .demo-account strong {
+        color: var(--primary);
+    }
+
+    .error {
+        background: #FADBD8;
+        color: #C0392B;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+
+    .success {
+        background: #D5F4E6;
+        color: #27AE60;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <h2>🔐 Fazer Login</h2>
+
+        <div class="demo-section">
+            <h3>📌 Contas de Demo</h3>
+            <div class="demo-account">
+                <strong>Aluno:</strong> aluno@educa.com / 123456
+            </div>
+            <div class="demo-account">
+                <strong>Professor:</strong> professor@educa.com / 123456
+            </div>
+        </div>
+
+        <div class="error" id="error-msg"></div>
+        <div class="success" id="success-msg"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">📧 Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">🔑 Senha</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn-submit">Entrar</button>
+        </form>
+
+        <div class="login-footer">
+            Não tem conta? <a href="/signup">Cadastre-se aqui</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('login-form');
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                successMsg.style.display = 'block';
+                successMsg.textContent = '✅ Login realizado com sucesso! Redirecionando...';
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            } else {
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = '❌ ' + data.error;
+            }
+        } catch (error) {
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = '❌ Erro ao fazer login';
+        }
+    });
+</script>
+{% endblock %}

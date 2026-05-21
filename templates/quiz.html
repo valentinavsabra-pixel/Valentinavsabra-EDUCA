@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz - {{ discipline }} | Educa+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quiz-container {
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+
+    .quiz-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .quiz-header h1 {
+        color: white;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .quiz-progress {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 1rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #FDB833;
+        width: 0%;
+        transition: width 0.3s;
+    }
+
+    .question-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: none;
+    }
+
+    .question-card.active {
+        display: block;
+    }
+
+    .question-text {
+        font-size: 1.3rem;
+        color: var(--dark);
+        margin-bottom: 2rem;
+        font-weight: 600;
+    }
+
+    .options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .option {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .option:hover {
+        background: #e8e8e8;
+    }
+
+    .option.selected {
+        border-color: var(--primary);
+        background: #FFE8D6;
+    }
+
+    .option.correct {
+        border-color: var(--success);
+        background: #D5F4E6;
+    }
+
+    .option.incorrect {
+        border-color: #E74C3C;
+        background: #FADBD8;
+    }
+
+    .feedback {
+        margin-top: 2rem;
+        padding: 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        display: none;
+    }
+
+    .feedback.correct {
+        background: #D5F4E6;
+        color: var(--success);
+        display: block;
+    }
+
+    .feedback.incorrect {
+        background: #FADBD8;
+        color: #C0392B;
+        display: block;
+    }
+
+    .quiz-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        justify-content: space-between;
+    }
+
+    .btn-nav {
+        padding: 0.75rem 1.5rem;
+        border: 2px solid var(--primary);
+        background: white;
+        color: var(--primary);
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-nav:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-nav:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-submit {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.3s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .xp-reward {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 2rem;
+        font-weight: 600;
+        display: none;
+    }
+
+    .xp-reward.show {
+        display: block;
+        animation: slideUp 0.5s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .quiz-complete {
+        background: white;
+        padding: 3rem;
+        border-radius: 15px;
+        text-align: center;
+        display: none;
+    }
+
+    .quiz-complete.show {
+        display: block;
+    }
+
+    .quiz-complete h2 {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .final-score {
+        font-size: 3rem;
+        font-weight: bold;
+        color: var(--secondary);
+        margin: 2rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div class="quiz-header">
+        <h1>🎯 Quiz - {{ discipline|capitalize }}</h1>
+        <div class="quiz-progress">
+            <p id="progress-text">Pergunta 1 de {{ questions|length }}</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-content">
+        {% for question in questions %}
+        <div class="question-card" data-question-id="{{ question.id }}">
+            <div class="question-text">{{ question.question }}</div>
+            <div class="options">
+                {% for idx, option in enumerate(question.options) %}
+                <div class="option" data-option="{{ idx }}">{{ option }}</div>
+                {% endfor %}
+            </div>
+            <div class="feedback" id="feedback-{{ question.id }}"></div>
+            <div class="xp-reward" id="xp-{{ question.id }}"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="quiz-complete" id="quiz-complete">
+        <h2>🎉 Parabéns!</h2>
+        <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem;">Você completou o quiz!</p>
+        <div class="final-score" id="final-score">0/{{ questions|length }}</div>
+        <p id="final-message" style="font-size: 1.1rem; color: var(--dark); margin-bottom: 2rem;"></p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/student/dashboard" class="btn btn-primary">Voltar ao Dashboard</a>
+            <button onclick="location.reload()" class="btn btn-secondary">Refazer Quiz</button>
+        </div>
+    </div>
+
+    <div class="quiz-buttons">
+        <button class="btn-nav" id="prev-btn" onclick="previousQuestion()">← Anterior</button>
+        <button class="btn-submit" id="submit-btn" onclick="submitAnswer()">Responder</button>
+        <button class="btn-nav" id="next-btn" onclick="nextQuestion()" disabled>Próxima →</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentQuestion = 0;
+    let answers = {};
+    let score = 0;
+    const totalQuestions = {{ questions|length }};
+
+    function showQuestion(index) {
+        document.querySelectorAll('.question-card').forEach((card, i) => {
+            card.classList.remove('active');
+        });
+        document.querySelectorAll('.question-card')[index].classList.add('active');
+        
+        updateProgress();
+        updateButtons();
+    }
+
+    function updateProgress() {
+        const percent = ((currentQuestion + 1) / totalQuestions) * 100;
+        document.getElementById('progress-fill').style.width = percent + '%';
+        document.getElementById('progress-text').textContent = `Pergunta ${currentQuestion + 1} de ${totalQuestions}`;
+    }
+
+    function updateButtons() {
+        document.getElementById('prev-btn').disabled = currentQuestion === 0;
+        document.getElementById('next-btn').disabled = !answers[currentQuestion];
+        
+        if (currentQuestion === totalQuestions - 1) {
+            document.getElementById('submit-btn').textContent = 'Terminar Quiz';
+        }
+    }
+
+    function previousQuestion() {
+        if (currentQuestion > 0) {
+            currentQuestion--;
+            showQuestion(currentQuestion);
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestion < totalQuestions - 1) {
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        }
+    }
+
+    function submitAnswer() {
+        if (currentQuestion === totalQuestions - 1) {
+            finishQuiz();
+        } else if (currentQuestion < totalQuestions - 1) {
+            nextQuestion();
+        }
+    }
+
+    function finishQuiz() {
+        document.getElementById('quiz-content').style.display = 'none';
+        document.querySelector('.quiz-buttons').style.display = 'none';
+        document.getElementById('quiz-complete').classList.add('show');
+        document.getElementById('final-score').textContent = `${score}/${totalQuestions}`;
+        
+        const percent = (score / totalQuestions) * 100;
+        let message = '';
+        if (percent === 100) {
+            message = 'Excelente! Você acertou todas as questões! 🌟';
+        } else if (percent >= 80) {
+            message = 'Muito bom! Você tem um excelente desempenho! 🎯';
+        } else if (percent >= 60) {
+            message = 'Bom trabalho! Continue estudando para melhorar! 💪';
+        } else {
+            message = 'Não desista! Estude mais e tente novamente! 📚';
+        }
+        document.getElementById('final-message').textContent = message;
+    }
+
+    // Event listeners
+    document.querySelectorAll('.option').forEach((option, idx) => {
+        option.addEventListener('click', () => {
+            const card = option.parentElement.parentElement;
+            const questionId = card.dataset.questionId;
+            const cardIndex = Array.from(document.querySelectorAll('.question-card')).indexOf(card);
+            
+            // Remove previous selection
+            card.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selection
+            option.classList.add('selected');
+            answers[cardIndex] = idx;
+            
+            // Auto submit
+            setTimeout(() => {
+                const questions = {{ questions|tojson }};
+                const question = questions[cardIndex];
+                
+                fetch('/quiz/{{ discipline }}', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        question_id: question.id,
+                        answer: idx
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    const feedback = document.getElementById(`feedback-${question.id}`);
+                    const xpElement = document.getElementById(`xp-${question.id}`);
+                    
+                    if (data.correct) {
+                        feedback.classList.add('correct');
+                        feedback.textContent = '✅ ' + data.explanation;
+                        score++;
+                        if (data.xp_reward > 0) {
+                            xpElement.classList.add('show');
+                            xpElement.textContent = `+${data.xp_reward} XP 🎉`;
+                        }
+                        option.classList.add('correct');
+                    } else {
+                        feedback.classList.add('incorrect');
+                        feedback.textContent = '❌ Resposta incorreta';
+                        option.classList.add('incorrect');
+                    }
+                });
+            }, 300);
+            
+            updateButtons();
+        });
+    });
+
+    // Initialize
+    showQuestion(0);
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro - Educa+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .signup-container {
+        max-width: 400px;
+        margin: 3rem auto;
+    }
+
+    .signup-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .signup-card h2 {
+        text-align: center;
+        color: var(--primary);
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+    }
+
+    .signup-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: var(--dark);
+    }
+
+    .signup-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .error {
+        background: #FADBD8;
+        color: #C0392B;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+
+    .success {
+        background: #D5F4E6;
+        color: #27AE60;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signup-container">
+    <div class="signup-card">
+        <h2>✍️ Criar Conta</h2>
+
+        <div class="error" id="error-msg"></div>
+        <div class="success" id="success-msg"></div>
+
+        <form id="signup-form">
+            <div class="form-group">
+                <label for="name">👤 Nome Completo</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">📧 Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">🔑 Senha</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="type">👨‍🎓 Tipo de Usuário</label>
+                <select id="type" name="type" required>
+                    <option value="">Selecione...</option>
+                    <option value="student">Aluno</option>
+                    <option value="teacher">Professor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Criar Conta</button>
+        </form>
+
+        <div class="signup-footer">
+            Já tem conta? <a href="/login">Faça login aqui</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('signup-form');
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const type = document.getElementById('type').value;
+
+        if (!type) {
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = '❌ Por favor, selecione o tipo de usuário';
+            return;
+        }
+
+        try {
+            const response = await fetch('/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, password, type })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                successMsg.style.display = 'block';
+                successMsg.textContent = '✅ Conta criada com sucesso! Redirecionando...';
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            } else {
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = '❌ ' + data.error;
+            }
+        } catch (error) {
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = '❌ Erro ao criar conta';
+        }
+    });
+</script>
+{% endblock %}
