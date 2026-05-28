@@ -1,1 +1,3 @@
-'use client'\n\nimport Hero from '@/components/Hero'\nimport Features from '@/components/Features'\nimport CTA from '@/components/CTA'\nimport Footer from '@/components/Footer'\n\nexport default function Home() {\n  return (\n    <main className="overflow-hidden">\n      <Hero />\n      <Features />\n      <CTA />\n      <Footer />\n    </main>\n  )\n}
+for file in app/page.tsx components/Footer.tsx app/login/page.tsx; do
+  perl -0777 -i -pe 's/\\n/\n/g' "$file"
+done
